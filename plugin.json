@@ -1,0 +1,26 @@
+{
+  "id": "neodex.vpn",
+  "name": "VPN",
+  "version": "1.0.0",
+  "author": "NDesumeur",
+  "description": "Le VPN des sites ouverts dans NeoDex, et seulement eux : le bouton VPN de la barre d'adresse. Par Tor (gratuit, sans compte) avec une sortie dans le pays choisi ou partout sauf en France, ou par Cloudflare WARP (rapide, dans ton pays). Tor est téléchargé une fois depuis torproject.org et n'est lancé que si sa signature officielle est bonne.",
+  "icon": "icon.png",
+  "entry": "index.js",
+  "main": "main.js",
+  "view": "vpn",
+  "autoload": true,
+  "neobase": ">=4.0.0",
+  "neodex": ">=3.1.16",
+  "type": "app",
+  "category": "Système",
+  "compatibility": ["windows"],
+  "syncMode": "aucune",
+  "syncInfo": "Rien n'est synchronisé : Tor et WARP sont installés sur chaque PC.",
+  "mobile": false,
+  "system": false,
+  "dependencies": {},
+  "sdk": "2.1.0",
+  "permissions": [
+    "full"
+  ]
+}
