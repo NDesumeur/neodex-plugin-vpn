@@ -1,0 +1,9 @@
+{
+  "pluginId": "neodex.vpn",
+  "repo": "NDesumeur/neodex-plugin-vpn",
+  "version": "1.0.0",
+  "sha256": "0342e1dc9d29cb1785179203ab5ac15c179c72569eb422638c134307e95956e6",
+  "approvedAt": "2026-11-13T23:34:02.798Z",
+  "neobase": ">=4.0.0",
+  "signature": "7pRpS1IlDceye3BhNlkrddoUb90EIrh5WG5c7c1e5wYoeP7yyHEfpH0X+84R19o0rmm8y87gxiizq6miqzA1CA=="
+}
