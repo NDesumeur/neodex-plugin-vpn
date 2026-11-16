@@ -41,7 +41,7 @@ module.exports = function (api, test = {}) {
   // warp-cli a changé ses commandes en 2024 : la nouvelle forme d'abord, l'ancienne si ce WARP est plus vieux
   const either = (now, old) => warp(...now).catch(() => warp(...old));
   let state = { on: false, busy: false, msg: '' };
-  const view = () => ({ ...state, country: cfg.country, countries: COUNTRIES, installed: cfg.country ? !!torExe() : fs.existsSync(cli()), torInstalled: !!torExe() });
+  const view = () => ({ ...state, country: cfg.country, countries: COUNTRIES, speeds: cfg.speeds || {}, installed: cfg.country ? !!torExe() : fs.existsSync(cli()), torInstalled: !!torExe() });
   const tell = () => api.emit('state', view());
   const proxyOf = on => on ? { proxyRules: `socks5://127.0.0.1:${cfg.country ? TOR_PORT : PORT}`, proxyBypassRules: '<local>' } : { mode: 'direct' };
 
@@ -134,6 +134,16 @@ module.exports = function (api, test = {}) {
     return state.on && (!c || torExe()) ? set(true) : view();
   });
   api.ipcMain.handle('check', check);
+  // la vitesse par la sortie actuelle : le temps d'une petite page de Cloudflare (ping) puis un téléchargement de 2 Mo (débit), notée pour ce pays
+  api.ipcMain.handle('speed', () => { const p = job.then(async () => {
+    const s = [...sessions][0]; if (!state.on || !s) throw new Error('allume le VPN pour mesurer sa vitesse');
+    const sig = () => AbortSignal.timeout(25000), t0 = Date.now();
+    await (await s.fetch('https://www.cloudflare.com/cdn-cgi/trace', { cache: 'no-store', signal: sig() })).text();
+    const ms = Date.now() - t0, t1 = Date.now();
+    const n = (await (await s.fetch('https://speed.cloudflare.com/__down?bytes=2000000', { cache: 'no-store', signal: sig() })).arrayBuffer()).byteLength;
+    const r = { ms, mbps: Math.round(n * 8 / Math.max(1, Date.now() - t1) / 100) / 10, at: Date.now() };  // Mbit/s à 0,1 près
+    cfg.speeds = { ...cfg.speeds, [cfg.country || 'warp']: r }; save(); tell(); return r;
+  }); job = p.catch(() => {}); return p; });  // une mesure ratée ne bloque pas les suivantes
   // les réglages de l'ancien VPN du cœur (NeoDex 3.1.15 et avant), repris une fois par la page
   api.ipcMain.handle('legacy', (_, old) => { if (cfg.legacy) return view(); cfg.legacy = 1; if (old && typeof old.vpnCountry === 'string') cfg.country = Object.hasOwn(COUNTRIES, old.vpnCountry) ? old.vpnCountry : ''; save(); return old?.vpn ? set(true) : view(); });
   api.ipcMain.handle('install', () => new Promise((ok, ko) => {

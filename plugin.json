@@ -1,9 +1,9 @@
 {
   "id": "neodex.vpn",
   "name": "VPN",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "NDesumeur",
-  "description": "Le VPN des sites ouverts dans NeoDex, et seulement eux : le bouton VPN de la barre d'adresse. Par Tor (gratuit, sans compte) avec une sortie dans le pays choisi ou partout sauf en France, ou par Cloudflare WARP (rapide, dans ton pays). Tor est téléchargé une fois depuis torproject.org et n'est lancé que si sa signature officielle est bonne.",
+  "description": "Le VPN des sites ouverts dans NeoDex, et seulement eux : le bouton VPN de la barre d'adresse. Par Tor (gratuit, sans compte) avec une sortie dans le pays choisi ou partout sauf en France, ou par Cloudflare WARP (rapide, dans ton pays). Tor est téléchargé une fois depuis torproject.org et n'est lancé que si sa signature officielle est bonne. Vitesse par pays : le bouton « Mesurer la vitesse » donne le ping et le débit par la sortie actuelle, et le résultat reste noté sous chaque pays (Cloudflare WARP compris) pour comparer. L'onglet s'adapte à la taille de l'écran (deux colonnes en grand écran).",
   "icon": "icon.png",
   "entry": "index.js",
   "main": "main.js",

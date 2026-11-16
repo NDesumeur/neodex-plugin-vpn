@@ -1,13 +1,15 @@
 // VPN, côté page : le bouton VPN de la barre d'adresse (clic : allumer / couper ; clic droit : le pays) et l'onglet du plugin
 // (état, adresse vue par les sites, choix du pays). Tout le travail se fait dans le volet système (main.js).
 const CSS = `
-.vpWrap{max-width:720px;margin:0 auto;padding:22px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box}
-.vpCard{padding:16px;display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--line2,#3a2a6e) 45%,#000);box-shadow:inset 0 0 0 2px var(--line2,#3a2a6e)}
-.vpCard .t{font:8px var(--title);letter-spacing:1px;color:var(--lilac,#c9bde6)}
-.vpBig{font:22px var(--title);color:#fff}.vpBig.on{color:#3fdc7a}
+.vpWrap{max-width:clamp(720px,72vw,1400px);margin:0 auto;padding:clamp(16px,1.6vw,30px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));align-items:start;gap:clamp(12px,1.2vw,22px);box-sizing:border-box}
+.vpCard{padding:clamp(14px,1.3vw,24px);display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--line2,#3a2a6e) 45%,#000);box-shadow:inset 0 0 0 2px var(--line2,#3a2a6e)}
+.vpCard .t{font:clamp(8px,.6vw,11px) var(--title);letter-spacing:1px;color:var(--lilac,#c9bde6)}
+.vpBig{font:clamp(20px,1.7vw,32px) var(--title);color:#fff}.vpBig.on{color:#3fdc7a}
 .vpRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.vpHint{font-size:12px;color:var(--muted,#9a8cc0);line-height:1.5}
-.vpList{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px}
+.vpHint{font-size:clamp(12px,.85vw,15px);color:var(--muted,#9a8cc0);line-height:1.5}
+.vpList{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(190px,13vw,280px),1fr));gap:clamp(6px,.5vw,10px)}
+.vpList button{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;height:auto;min-height:clamp(52px,3.6vw,68px);padding:10px 14px;white-space:normal;overflow-wrap:anywhere;text-indent:0}
+.vpList button small{display:block;margin:0;font-size:clamp(11px,.75vw,14px);color:var(--muted,#9a8cc0)}
 .vpList button{text-align:left}.vpList button.sel{box-shadow:inset 0 0 0 2px var(--magenta,#ff4fd8)}
 `;
 export default async function (ctx) {
@@ -75,10 +77,15 @@ export default async function (ctx) {
   document.addEventListener('pointerdown', e => { if (alive && !e.target.closest('.vpnPop')) pop.classList.remove('on'); }, true);
 
   // l'onglet du plugin : la même chose en grand
-  const view = ctx.view, big = el('div', 'vpBig', '…'), ipLine = el('div', 'vpHint', ''), list = el('div', 'vpList'), go = el('button', 'btn px', 'ACTIVER');
+  const view = ctx.view, big = el('div', 'vpBig', '…'), ipLine = el('div', 'vpHint', ''), list = el('div', 'vpList'), go = el('button', 'btn px', 'ACTIVER'), sp = el('button', 'btn px', 'MESURER LA VITESSE');
   go.onclick = toggle;
+  const speedText = r => String(r.mbps).replace('.', ',') + ' Mbit/s · ' + r.ms + ' ms';
+  sp.title = 'Ping et débit (2 Mo téléchargés) par la sortie actuelle ; le résultat reste noté à côté du pays';
+  sp.onclick = async () => { sp.disabled = true; sp.textContent = 'MESURE…';
+    try { const r = await call('speed'); toast('Vitesse du VPN : ' + speedText(r)); } catch (e) { toast('Mesure impossible : ' + e.message.replace(/^Error invoking remote method '[^']*': (Error: )?/, ''), true); }
+    sp.textContent = 'MESURER LA VITESSE'; paint(); };
   view.replaceChildren(box('vpWrap', [
-    box('vpCard', [el('div', 't', 'VPN DES SITES'), big, box('vpRow', [go]), ipLine,
+    box('vpCard', [el('div', 't', 'VPN DES SITES'), big, box('vpRow', [go, sp]), ipLine,
       el('div', 'vpHint', 'Seuls les sites ouverts dans NeoDex passent par le VPN : le reste de ton PC (jeux, Discord, Windows) n\'est pas touché.')]),
     box('vpCard', [el('div', 't', 'PAYS DE SORTIE'), list,
       el('div', 'vpHint', 'Un pays : par Tor, gratuit et sans compte, plus lent. Cloudflare WARP : rapide, mais les sites te voient dans ton pays. Le bouton VPN de la barre d\'adresse fait la même chose (clic droit : le pays).')]),
@@ -86,10 +93,12 @@ export default async function (ctx) {
   function paint() {
     if (!now.countries) return;
     big.textContent = now.busy ? (now.msg || '…') : now.on ? 'ACTIF' + (where(now) ? ' · ' + where(now).toUpperCase() : ' · WARP') : 'COUPÉ';
-    big.className = 'vpBig' + (now.on ? ' on' : ''); go.textContent = now.on ? 'COUPER' : 'ACTIVER'; go.disabled = !!now.busy;
+    big.className = 'vpBig' + (now.on ? ' on' : ''); go.textContent = now.on ? 'COUPER' : 'ACTIVER'; go.disabled = !!now.busy; if (sp.textContent !== 'MESURE…') sp.disabled = !now.on || !!now.busy;
     if (!now.on) ipLine.textContent = '';
-    list.replaceChildren(...CHOICES(now).map(([k, v, h]) => { const b = el('button', 'btn px' + (k === now.country ? ' sel' : ''), v); b.title = h; b.onclick = () => pick(k); return b; }));
+    list.replaceChildren(...CHOICES(now).map(([k, v, h]) => { const b = el('button', 'btn px' + (k === now.country ? ' sel' : '')), r = now.speeds?.[k || 'warp'];
+      b.append(el('span', '', v), el('small', '', r ? speedText(r) : 'pas encore mesuré')); b.title = h + (r ? ' · mesuré le ' + new Date(r.at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : ''); b.onclick = () => pick(k); return b; }));
   }
+  view.__vp = { show };  // pour l'auto-test
   ctx.onOpen(() => { if (now.on) tell(); });
 
   // l'ancien VPN du cœur (NeoDex 3.1.15 et avant) : ses réglages repris une fois, et rallumé s'il l'était
