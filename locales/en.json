@@ -91,5 +91,8 @@
  "Mesure impossible : ": "Measurement failed: ",
  "pas encore mesuré": "not measured yet",
  " · mesuré le ": " · measured on ",
- "allume le VPN pour mesurer sa vitesse": "turn the VPN on to measure its speed"
+ "allume le VPN pour mesurer sa vitesse": "turn the VPN on to measure its speed",
+ "Vitesse du VPN :": "VPN speed:",
+ "Mesure impossible :": "Measurement failed:",
+ "· mesuré le": "· measured on"
 }
